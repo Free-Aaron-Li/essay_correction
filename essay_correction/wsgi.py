@@ -7,6 +7,16 @@ For more information on this file, see
 https://docs.djangoproject.com/en/5.2/howto/deployment/wsgi/
 """
 
+#  Copyright (c) 2025. aaron.
+#
+#  This program is under the GPL-3.0 license.
+#  if you have not received it or the program has several bugs, please let me know:
+#  <communicate_aaron@outlook.com>.
+#
+#  This program is under the GPL-3.0 license.
+#  if you have not received it or the program has several bugs, please let me know:
+#  <communicate_aaron@outlook.com>.
+
 import os
 
 from django.core.wsgi import get_wsgi_application

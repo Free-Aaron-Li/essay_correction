@@ -1,6 +1,16 @@
 #!/usr/bin/env python
 """Django's command-line utility for administrative tasks."""
 
+#  Copyright (c) 2025. aaron.
+#
+#  This program is under the GPL-3.0 license.
+#  if you have not received it or the program has several bugs, please let me know:
+#  <communicate_aaron@outlook.com>.
+#
+#  This program is under the GPL-3.0 license.
+#  if you have not received it or the program has several bugs, please let me know:
+#  <communicate_aaron@outlook.com>.
+
 import os
 import sys
 

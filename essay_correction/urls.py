@@ -15,6 +15,16 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+#  Copyright (c) 2025. aaron.
+#
+#  This program is under the GPL-3.0 license.
+#  if you have not received it or the program has several bugs, please let me know:
+#  <communicate_aaron@outlook.com>.
+#
+#  This program is under the GPL-3.0 license.
+#  if you have not received it or the program has several bugs, please let me know:
+#  <communicate_aaron@outlook.com>.
+
 from django.urls import path, include
 
 urlpatterns = [
