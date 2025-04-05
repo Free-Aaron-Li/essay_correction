@@ -1,0 +1,24 @@
+# IDE
+/**/.idea/
+/**/.fleet/
+/**/.vscode/
+
+# Vue、React build output
+dist/
+build/
+node_modules/
+
+# Logs
+logs
+*.log
+
+# Dependency Directories
+node_modules
+dist-ssr
+
+# Lock Files
+package-lock.json
+yarn.lock
+
+# Local Environment Files
+*.local
