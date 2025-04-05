@@ -7,43 +7,34 @@
   -->
 
 <template>
-  <div class="mb-4">
-    <el-button>Default</el-button>
-    <el-button type="primary">Primary</el-button>
-    <el-button type="success">Success</el-button>
-    <el-button type="info">Info</el-button>
-    <el-button type="warning">Warning</el-button>
-    <el-button type="danger">Danger</el-button>
-  </div>
-
-  <div class="mb-4">
-    <el-button plain>Plain</el-button>
-    <el-button plain type="primary">Primary</el-button>
-    <el-button plain type="success">Success</el-button>
-    <el-button plain type="info">Info</el-button>
-    <el-button plain type="warning">Warning</el-button>
-    <el-button plain type="danger">Danger</el-button>
-  </div>
-
-  <div class="mb-4">
-    <el-button round>Round</el-button>
-    <el-button round type="primary">Primary</el-button>
-    <el-button round type="success">Success</el-button>
-    <el-button round type="info">Info</el-button>
-    <el-button round type="warning">Warning</el-button>
-    <el-button round type="danger">Danger</el-button>
-  </div>
-
-  <div>
-    <el-button :icon="Search" circle/>
-    <el-button :icon="Edit" circle type="primary"/>
-    <el-button :icon="Check" circle type="success"/>
-    <el-button :icon="Message" circle type="info"/>
-    <el-button :icon="Star" circle type="warning"/>
-    <el-button :icon="Delete" circle type="danger"/>
-  </div>
+  <el-button type="primary" @click="handleLogin">测试登陆</el-button>
+  <el-button type="success" @click="handleUserList">测试获取用户信息列表</el-button>
 </template>
 
 <script setup>
-import {Check, Delete, Edit, Message, Search, Star,} from '@element-plus/icons-vue'
+
+import requestUtil from "@/utils/request";
+
+const handleLogin = async () => {
+  let result = await requestUtil.get("user/jwt_test")
+  let data = result.data
+  if (data.code === 200) {
+    const token = data.token
+    console.log("登陆成功，token=" + token)
+    window.sessionStorage.setItem("token", token)
+  } else {
+    console.log("登陆出错！")
+  }
+}
+
+const handleUserList = async () => {
+  let result = await requestUtil.get("user/test")
+  let data = result.data
+  if (data.code === 200) {
+    const userList = data.data;
+    console.log("用户信息列表，userList=" + userList)
+  } else {
+    console.log("登陆出错！")
+  }
+}
 </script>
