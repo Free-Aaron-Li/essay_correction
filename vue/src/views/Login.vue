@@ -8,10 +8,11 @@
 
 <template>
   <div class="login">
-    <el-form ref="loginRef" class="login-form">
-      <h3 class="title">python222 Django后台管理系统</h3>
-      <el-form-item>
+    <el-form ref="loginRef" :model="loginForm" :rules="loginRules" class="login-form">
+      <h3 class="title">作文批改系统</h3>
+      <el-form-item prop="username">
         <el-input
+            v-model="loginForm.username"
             auto-complete="off"
             placeholder="账号"
             size="large"
@@ -22,8 +23,9 @@
           </template>
         </el-input>
       </el-form-item>
-      <el-form-item>
+      <el-form-item prop="password">
         <el-input
+            v-model="loginForm.password"
             auto-complete="off"
             placeholder="密码"
             size="large"
@@ -34,12 +36,13 @@
           </template>
         </el-input>
       </el-form-item>
-      <el-checkbox style="margin:0 0 25px 0;">记住密码</el-checkbox>
+      <el-checkbox v-model="loginForm.rememberMe" style="margin:0 0 25px 0;">记住密码</el-checkbox>
       <el-form-item style="width:100%;">
         <el-button
             size="large"
             style="width:100%;"
             type="primary"
+            @click.prevent="handleLogin"
         >
           <span>登 录</span>
         </el-button>
@@ -53,6 +56,70 @@
 </template>
 
 <script setup>
+import {ref} from 'vue'
+import qs from 'qs'
+import requestUtil from '@/utils/request'
+import {ElMessage} from "element-plus";
+import Cookies from 'js-cookie'
+import {decrypt, encrypt} from "@/utils/jsencrypt";
+
+const loginForm = ref({
+  username: '',
+  password: '',
+  rememberMe: false,
+})
+
+const loginRef = ref(null)
+
+// 定义规则不允许为空
+const loginRules = ref({
+  username: [{required: true, trigger: 'blur', message: "请输入您的账号"}],
+  password: [{required: true, trigger: 'blur', message: "请输入您的密码"}]
+})
+
+// 登陆逻辑
+const handleLogin = () => {
+  loginRef.value.validate(async (valid) => {
+    if (valid) {
+      let result = await requestUtil.post("user/login?" + qs.stringify(loginForm.value))
+      let data = result.data
+      if (data.code === 200) {
+        ElMessage.success(data.info)
+        window.sessionStorage.setItem("token", data.token)
+        // 勾选“记住密码”
+        // 在cookie中保存用户名和密码
+        if (loginForm.value.rememberMe) {
+          Cookies.set('username', encrypt(loginForm.value.username), {expires: 30})
+          Cookies.set('password', encrypt(loginForm.value.password), {expires: 30})
+          Cookies.set('rememberMe', loginForm.value.rememberMe, {expires: 30})
+        } else {
+          Cookies.remove('username')
+          Cookies.remove('password')
+          Cookies.remove('rememberMe')
+        }
+      } else {
+        ElMessage.error(data.info)
+      }
+    } else {
+      console.log('验证失败！')
+    }
+  })
+}
+
+// 从Cookie中获取值
+function getCookie() {
+  const username = Cookies.get('username')
+  const password = Cookies.get('password')
+  const rememberMe = Cookies.get('rememberMe')
+  loginForm.value = {
+    // 如果未定义，取空值；如果定义，则解密
+    username: username === undefined ? loginForm.value.username : decrypt(username),
+    password: password === undefined ? loginForm.value.password : decrypt(password),
+    rememberMe: rememberMe === undefined ? false : Boolean(rememberMe)
+  }
+}
+
+getCookie()
 </script>
 
 <style lang="scss" scoped>

@@ -3,7 +3,28 @@
 #  This program is under the GPL-3.0 license.
 #  if you have not received it or the program has several bugs, please let me know:
 #  <communicate_aaron@outlook.com>.
+#
+#  This program is under the GPL-3.0 license.
+#  if you have not received it or the program has several bugs, please let me know:
+#  <communicate_aaron@outlook.com>.
+#
+#  This program is under the GPL-3.0 license.
+#  if you have not received it or the program has several bugs, please let me know:
+#  <communicate_aaron@outlook.com>.
+#
+#  This program is under the GPL-3.0 license.
+#  if you have not received it or the program has several bugs, please let me know:
+#  <communicate_aaron@outlook.com>.
+#
+#  This program is under the GPL-3.0 license.
+#  if you have not received it or the program has several bugs, please let me know:
+#  <communicate_aaron@outlook.com>.
+#
+#  This program is under the GPL-3.0 license.
+#  if you have not received it or the program has several bugs, please let me know:
+#  <communicate_aaron@outlook.com>.
 from django.db import models
+from rest_framework import serializers
 
 
 class User(models.Model):
@@ -27,3 +48,10 @@ class User(models.Model):
         db_table = "users"  # 表名称对应数据库中的 users
         verbose_name = "用户"
         verbose_name_plural = "用户"
+
+
+# User 类JSON序列化
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = '__all__'

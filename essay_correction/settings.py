@@ -15,6 +15,14 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 #  This program is under the GPL-3.0 license.
 #  if you have not received it or the program has several bugs, please let me know:
 #  <communicate_aaron@outlook.com>.
+#
+#  This program is under the GPL-3.0 license.
+#  if you have not received it or the program has several bugs, please let me know:
+#  <communicate_aaron@outlook.com>.
+#
+#  This program is under the GPL-3.0 license.
+#  if you have not received it or the program has several bugs, please let me know:
+#  <communicate_aaron@outlook.com>.
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -53,10 +61,11 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'user.middleware.JwtAuthenticationMiddleware'
 ]
 
 # 访问白名单
