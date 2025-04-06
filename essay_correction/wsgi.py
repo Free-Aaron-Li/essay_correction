@@ -17,6 +17,7 @@ https://docs.djangoproject.com/en/5.2/howto/deployment/wsgi/
 #  if you have not received it or the program has several bugs, please let me know:
 #  <communicate_aaron@outlook.com>.
 
+
 import os
 
 from django.core.wsgi import get_wsgi_application

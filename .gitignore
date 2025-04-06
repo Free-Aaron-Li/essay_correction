@@ -2,6 +2,11 @@
 /**/.idea/
 /**/.fleet/
 /**/.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
 # Vue、React build output
 dist/
