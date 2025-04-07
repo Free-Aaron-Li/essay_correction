@@ -1,61 +1,17 @@
 <!--
-  Copyright (c) 2025. aaron.
-
-  This program is under the GPL-3.0 license.
-  if you have not received it or the program has several bugs, please let me know:
-  <communicate_aaron@outlook.com>.
+  - Copyright (c) 2025. aaron.
+  -
+  - This program is under the GPL-3.0 license.
+  - if you have not received it or the program has several bugs, please let me know:
+  - <communicate_aaron@outlook.com>.
   -->
-<template>
-  <div style="margin-bottom: 20px">
-    <el-button size="small" @click="addTab(editableTabsValue)">
-      add tab
-    </el-button>
-  </div>
-  <el-tabs
-      v-model="editableTabsValue"
-      type="card"
-      class="demo-tabs"
-      closable
-      @tab-remove="removeTab"
-  >
-    <el-tab-pane
-        v-for="item in editableTabs"
-        :key="item.name"
-        :label="item.title"
-        :name="item.name"
-    >
-      {{ item.content }}
-    </el-tab-pane>
-  </el-tabs>
-</template>
+<script setup>
+import {ref, watch} from 'vue'
+import store from "@/store";
 
-<script  setup>
-import { ref } from 'vue'
+const editableTabsValue = ref(store.state.editableTabsValue)
+const editableTabs = ref(store.state.editableTabs)
 
-let tabIndex = 2
-const editableTabsValue = ref('2')
-const editableTabs = ref([
-  {
-    title: 'Tab 1',
-    name: '1',
-    content: 'Tab 1 content',
-  },
-  {
-    title: 'Tab 2',
-    name: '2',
-    content: 'Tab 2 content',
-  },
-])
-
-const addTab = (targetName) => {
-  const newTabName = `${++tabIndex}`
-  editableTabs.value.push({
-    title: 'New Tab',
-    name: newTabName,
-    content: 'New Tab content',
-  })
-  editableTabsValue.value = newTabName
-}
 const removeTab = (targetName) => {
   const tabs = editableTabs.value
   let activeName = editableTabsValue.value
@@ -72,8 +28,39 @@ const removeTab = (targetName) => {
 
   editableTabsValue.value = activeName
   editableTabs.value = tabs.filter((tab) => tab.name !== targetName)
+
+  // 更新维护 tabs
+  store.state.editableTabsValue = editableTabsValue.value
+  store.state.editableTabs = editableTabs.value
 }
+
+const refreshTabs = () => {
+  editableTabsValue.value = store.state.editableTabsValue
+  editableTabs.value = store.state.editableTabs
+}
+
+watch(store.state, () => {
+  refreshTabs()
+}, {deep: true, immediate: true})
 </script>
+
+<template>
+  <el-tabs
+      v-model="editableTabsValue"
+      class="demo-tabs"
+      closable
+      type="card"
+      @tab-remove="removeTab"
+  >
+    <el-tab-pane
+        v-for="item in editableTabs"
+        :key="item.name"
+        :label="item.title"
+        :name="item.name"
+    >
+    </el-tab-pane>
+  </el-tabs>
+</template>
 
 <style>
 .demo-tabs > .el-tabs__content {

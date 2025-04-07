@@ -87,6 +87,8 @@ const handleLogin = () => {
       if (data.code === 200) {
         ElMessage.success(data.info)
         window.sessionStorage.setItem("token", data.token)
+        window.sessionStorage.setItem("current_user", JSON.stringify(data.user))
+        window.sessionStorage.setItem("menu_list", JSON.stringify(data.menu_list))
         // 勾选“记住密码”
         // 在cookie中保存用户名和密码
         if (loginForm.value.rememberMe) {
@@ -102,7 +104,7 @@ const handleLogin = () => {
         ElMessage.error(data.info)
       }
       // 跳转到主页
-      //await router.replace('/')
+      await router.replace('/')
     } else {
       console.log('验证失败！')
     }

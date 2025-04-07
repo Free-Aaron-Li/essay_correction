@@ -8,6 +8,9 @@
 *.sln
 *.sw?
 
+# DataBase
+/**/migrations/
+
 # Vue、React build output
 dist/
 build/

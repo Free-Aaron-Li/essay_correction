@@ -36,13 +36,13 @@ class Menu(models.Model):
 class MenuSerializer(serializers.ModelSerializer):
     children = serializers.SerializerMethodField()
 
-    def get_children(self, obj):
-        print("111")
+    @staticmethod
+    def get_children(obj):
         if hasattr(obj, "children"):
-            serializerMenuList: list[MenuSerializer2] = list()
+            serializer_menu_list: list[MenuSerializer2] = list()
             for menu in obj.children:
-                serializerMenuList.append(MenuSerializer2(menu).data)
-            return serializerMenuList
+                serializer_menu_list.append(MenuSerializer2(menu).data)
+            return serializer_menu_list
 
     class Meta:
         model = Menu

@@ -3,15 +3,65 @@
 #  This program is under the GPL-3.0 license.
 #  if you have not received it or the program has several bugs, please let me know:
 #  <communicate_aaron@outlook.com>.
+from typing import List
+
 from django.http import JsonResponse
 from django.views import View
 from rest_framework_jwt.settings import api_settings
 
+from menu.models import Menu, MenuSerializer
 from role.models import Role
 from user.models import User, UserSerializer
 
 
 class LoginView(View):
+
+    @staticmethod
+    def get_sorted_menu_list(user: User) -> List[Menu]:
+        """
+        根据用户对象，获取并返回排序后的菜单列表。
+
+        :param user: 当前用户对象
+        :return: 排序后的菜单列表
+        """
+        # 查询用户的角色列表
+        role_list = Role.objects.raw(
+            "select id, name from roles where id in (select role_id from user_role where user_id=%s);", [user.id]
+        )
+
+        # 初始化存储菜单列表
+        merged_menu_list: list[Menu] = []
+        for role in role_list:
+            # 针对每个角色查询对应菜单
+            menu_list_raw = Menu.objects.raw(
+                "select id, name, icon, parent_id, order_num, perms, create_time, update_time, remark "
+                "from menus where id in (select menu_id from role_menu where role_id=%s);", [role.id]
+            )
+            # 转换 RawQuerySet 为 list 并进行合并
+            menu_list = list(menu_list_raw)
+            merged_menu_list.extend(menu_list)
+
+        # 根据 order_num 进行排序
+        sorted_menu_list = sorted(merged_menu_list, key=lambda menu: menu.order_num)
+
+        return sorted_menu_list
+
+    @staticmethod
+    def build_tree_menu(sorted_menu_list):
+        result_menu_list: list[Menu] = list()
+        for menu in sorted_menu_list:
+            # 寻找子节点
+            for child in sorted_menu_list:
+                if child.parent_id == menu.id:
+                    if not hasattr(menu, 'children'):
+                        menu.children = list()
+                    menu.children.append(child)
+
+            # 判断父节点，添加到集合
+            if menu.parent_id == 0:
+                result_menu_list.append(menu)
+        return result_menu_list
+
     def post(self, request):
         username = request.GET.get('username')
         password = request.GET.get('password')
@@ -20,17 +70,23 @@ class LoginView(View):
             jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
             jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
             payload = jwt_payload_handler(user)
+            # 获取token
             token = jwt_encode_handler(payload)
-            role_list = Role.objects.raw(
-                "select id, name from roles where id in (select role_id from user_role where user_id=" + str(
-                    user.user_id) + ")")
-            print(role_list)
-            for row in role_list:
-                print(row.id, row.name)
+            # 获取菜单
+            sorted_menu_list = self.get_sorted_menu_list(user)
+            # 构造菜单树
+            menu_list = self.build_tree_menu(sorted_menu_list)
+            # 序列化操作
+            serializer_menu_list = list()
+            for menu in menu_list:
+                serializer_menu_list.append(MenuSerializer(menu).data)
+
         except Exception as e:
             print(e)
             return JsonResponse({'code': 500, 'info': '用户名或密码错误！'})
-        return JsonResponse({'code': 200, 'user': UserSerializer(user).data, 'token': token, 'info': '登陆成功！'})
+
+        return JsonResponse({'code': 200, 'user': UserSerializer(user).data, 'token': token, 'info': '登陆成功！',
+                             'menu_list': serializer_menu_list})
 
 
 class TestView(View):
