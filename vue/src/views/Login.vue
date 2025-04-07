@@ -62,6 +62,7 @@ import requestUtil from '@/utils/request'
 import {ElMessage} from "element-plus";
 import Cookies from 'js-cookie'
 import {decrypt, encrypt} from "@/utils/jsencrypt";
+import router from '@/router'
 
 const loginForm = ref({
   username: '',
@@ -100,6 +101,8 @@ const handleLogin = () => {
       } else {
         ElMessage.error(data.info)
       }
+      // 跳转到主页
+      //await router.replace('/')
     } else {
       console.log('验证失败！')
     }

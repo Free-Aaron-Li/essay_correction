@@ -3,16 +3,12 @@
 #  This program is under the GPL-3.0 license.
 #  if you have not received it or the program has several bugs, please let me know:
 #  <communicate_aaron@outlook.com>.
-#
-#  This program is under the GPL-3.0 license.
-#  if you have not received it or the program has several bugs, please let me know:
-#  <communicate_aaron@outlook.com>.
 from django.db import models
 from rest_framework import serializers
 
 
 class User(models.Model):
-    user_id = models.AutoField(primary_key=True)  # 自增主键
+    id = models.AutoField(primary_key=True)  # 自增主键
     username = models.CharField(max_length=50, unique=True, null=False)  # 唯一用户名
     password = models.CharField(max_length=255, null=False)  # 密码（建议加密存储）
     avatar = models.CharField(max_length=255, null=True, blank=True)  # 头像路径

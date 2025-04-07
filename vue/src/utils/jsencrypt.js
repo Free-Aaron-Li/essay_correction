@@ -1,3 +1,10 @@
+/*
+ Copyright (c) 2025. aaron.
+
+ This program is under the GPL-3.0 license.
+ if you have not received it or the program has several bugs, please let me know:
+ <communicate_aaron@outlook.com>.
+ */
 import JSEncrypt from 'jsencrypt/bin/jsencrypt.min'
 
 // 密钥对生成 http://web.chacuo.net/netrsakeypair

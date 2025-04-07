@@ -3,15 +3,11 @@
 #  This program is under the GPL-3.0 license.
 #  if you have not received it or the program has several bugs, please let me know:
 #  <communicate_aaron@outlook.com>.
-#
-#  This program is under the GPL-3.0 license.
-#  if you have not received it or the program has several bugs, please let me know:
-#  <communicate_aaron@outlook.com>.
-
 from django.http import JsonResponse
 from django.views import View
 from rest_framework_jwt.settings import api_settings
 
+from role.models import Role
 from user.models import User, UserSerializer
 
 
@@ -25,6 +21,12 @@ class LoginView(View):
             jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
             payload = jwt_payload_handler(user)
             token = jwt_encode_handler(payload)
+            role_list = Role.objects.raw(
+                "select id, name from roles where id in (select role_id from user_role where user_id=" + str(
+                    user.user_id) + ")")
+            print(role_list)
+            for row in role_list:
+                print(row.id, row.name)
         except Exception as e:
             print(e)
             return JsonResponse({'code': 500, 'info': '用户名或密码错误！'})
