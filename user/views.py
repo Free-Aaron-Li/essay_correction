@@ -15,6 +15,19 @@ from user.models import User, UserSerializer
 
 
 class LoginView(View):
+    @staticmethod
+    def get_user_roles(user: User) -> List[Role]:
+        """
+        根据用户对象，获取并返回角色列表。
+
+        :param user: 当前用户对象
+        :return: 角色对象列表
+        """
+        # 查询用户的角色列表
+        role_list = Role.objects.raw(
+            "select id, name from roles where id in (select role_id from user_role where user_id=%s);", [user.id]
+        )
+        return list(role_list)
 
     @staticmethod
     def get_sorted_menu_list(user: User) -> List[Menu]:
@@ -24,10 +37,8 @@ class LoginView(View):
         :param user: 当前用户对象
         :return: 排序后的菜单列表
         """
-        # 查询用户的角色列表
-        role_list = Role.objects.raw(
-            "select id, name from roles where id in (select role_id from user_role where user_id=%s);", [user.id]
-        )
+        # 获取用户的角色列表
+        role_list = LoginView.get_user_roles(user)
 
         # 初始化存储菜单列表
         merged_menu_list: list[Menu] = []
@@ -85,8 +96,10 @@ class LoginView(View):
             print(e)
             return JsonResponse({'code': 500, 'info': '用户名或密码错误！'})
 
+        # 获取当前用户所有角色，逗号隔开
+        roles = "，".join([role.name for role in self.get_user_roles(user)])
         return JsonResponse({'code': 200, 'user': UserSerializer(user).data, 'token': token, 'info': '登陆成功！',
-                             'menu_list': serializer_menu_list})
+                             'menu_list': serializer_menu_list, 'roles': roles})
 
 
 class TestView(View):

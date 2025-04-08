@@ -34,6 +34,8 @@ const removeTab = (targetName) => {
   // 更新维护 tabs
   store.state.editableTabsValue = editableTabsValue.value
   store.state.editableTabs = editableTabs.value
+
+  router.push({path: activeName})
 }
 
 const router = useRouter()
@@ -76,5 +78,17 @@ watch(store.state, () => {
   color: #6b778c;
   font-size: 32px;
   font-weight: 600;
+}
+
+.el-tabs--card > .el-tabs__header .el-tabs__item.is-active {
+  background-color: lightgray;
+}
+
+.el-main {
+  padding: 0;
+}
+
+.el-tabs__content {
+  padding: 0 !important;;
 }
 </style>

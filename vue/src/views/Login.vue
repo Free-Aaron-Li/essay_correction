@@ -86,8 +86,10 @@ const handleLogin = () => {
       let data = result.data
       if (data.code === 200) {
         ElMessage.success(data.info)
+        const current_user = data.user
+        current_user.roles = data.roles
         window.sessionStorage.setItem("token", data.token)
-        window.sessionStorage.setItem("current_user", JSON.stringify(data.user))
+        window.sessionStorage.setItem("current_user", JSON.stringify(current_user))
         window.sessionStorage.setItem("menu_list", JSON.stringify(data.menu_list))
         // 勾选“记住密码”
         // 在cookie中保存用户名和密码

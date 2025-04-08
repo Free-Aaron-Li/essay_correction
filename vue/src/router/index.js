@@ -44,6 +44,11 @@ const routes = [
                 path: '/bsns/post',
                 name: '岗位管理',
                 component: () => import('../views/bsns/Post')
+            },
+            {
+                path: '/userCenter',
+                name: '个人中心',
+                component: () => import('../views/userCenter/index.vue')
             }
         ]
     },
