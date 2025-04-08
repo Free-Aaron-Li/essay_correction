@@ -24,6 +24,7 @@ import Footer from '@/layout/footer'
         </el-header>
         <el-main>
           <Tabs/>
+          <router-view/>
         </el-main>
         <el-footer>
           <Footer/>
@@ -55,7 +56,7 @@ import Footer from '@/layout/footer'
   padding-right: 0;
 }
 
-:deep(ul.el-menu) {
-  border-right-width: 0
+.ul.el-menu {
+  border-right-width: 0;
 }
 </style>

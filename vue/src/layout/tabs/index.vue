@@ -1,13 +1,15 @@
 <!--
-  - Copyright (c) 2025. aaron.
-  -
-  - This program is under the GPL-3.0 license.
-  - if you have not received it or the program has several bugs, please let me know:
-  - <communicate_aaron@outlook.com>.
+  Copyright (c) 2025. aaron.
+
+  This program is under the GPL-3.0 license.
+  if you have not received it or the program has several bugs, please let me know:
+  <communicate_aaron@outlook.com>.
   -->
 <script setup>
 import {ref, watch} from 'vue'
 import store from "@/store";
+import {useRouter} from 'vue-router'
+
 
 const editableTabsValue = ref(store.state.editableTabsValue)
 const editableTabs = ref(store.state.editableTabs)
@@ -34,6 +36,11 @@ const removeTab = (targetName) => {
   store.state.editableTabs = editableTabs.value
 }
 
+const router = useRouter()
+const clickTab = (target) => {
+  router.push({name: target.props.label})
+}
+
 const refreshTabs = () => {
   editableTabsValue.value = store.state.editableTabsValue
   editableTabs.value = store.state.editableTabs
@@ -51,6 +58,7 @@ watch(store.state, () => {
       closable
       type="card"
       @tab-remove="removeTab"
+      @tab-click="clickTab"
   >
     <el-tab-pane
         v-for="item in editableTabs"
