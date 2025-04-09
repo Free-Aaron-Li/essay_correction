@@ -3,12 +3,15 @@
 #  This program is under the GPL-3.0 license.
 #  if you have not received it or the program has several bugs, please let me know:
 #  <communicate_aaron@outlook.com>.
+import json
+from datetime import datetime
 from typing import List
 
 from django.http import JsonResponse
 from django.views import View
 from rest_framework_jwt.settings import api_settings
 
+from essay_correction import settings
 from menu.models import Menu, MenuSerializer
 from role.models import Role
 from user.models import User, UserSerializer
@@ -102,6 +105,74 @@ class LoginView(View):
                              'menu_list': serializer_menu_list, 'roles': roles})
 
 
+class SaveView(View):
+    @staticmethod
+    def post(request):
+        data = json.loads(request.body.decode('utf-8'))
+        # 添加
+        if data['id'] == -1:
+            pass
+        # 修改
+        else:
+            user = User(id=data['id'], username=data['username'], password=data['password'],
+                        avatar=data['avatar'], email=data['email'], phone=data['phone'],
+                        last_login_time=data['last_login_time'], status=data['status'], created_at=data['created_at'],
+                        updated_at=data['updated_at'], remark=data['remark'], user_type=data['user_type'])
+            user.update_time = datetime.now().date()
+            user.save()
+        return JsonResponse({'code': 200})
+
+
+class PwdView(View):
+    @staticmethod
+    def post(request):
+        data = json.loads(request.body.decode("utf-8"))
+        id = data['id']
+        old_password = data['oldPassword']
+        new_password = data['newPassword']
+        obj_user = User.objects.get(id=id)
+        if obj_user.password == old_password:
+            obj_user.password = new_password
+            obj_user.update_time = datetime.now().date()
+            obj_user.save()
+            return JsonResponse({'code': 200})
+        else:
+            return JsonResponse({'code': 500, 'error_info': '原密码错误！'})
+
+
+class ImageView(View):
+    @staticmethod
+    def post(request):
+        file = request.FILES.get('avatar')
+        print("file:", file)
+        if file:
+            file_name = file.name
+            suffix_name = file_name[file_name.rfind("."):]
+            new_file_name = datetime.now().strftime('%Y%m%d%H%M%S') + suffix_name
+            file_path = str(settings.MEDIA_ROOT) + "/user_avatar/" + new_file_name
+            print("file_path:", file_path)
+            try:
+                with open(file_path, 'wb') as f:
+                    for chunk in file.chunks():
+                        f.write(chunk)
+                return JsonResponse({'code': 200, 'title': new_file_name})
+            except Exception as e:
+                print(e)
+                return JsonResponse({'code': 500, 'error_info': '上传头像失败'})
+
+
+class AvatarView(View):
+    @staticmethod
+    def post(request):
+        data = json.loads(request.body.decode("utf-8"))
+        id = data['id']
+        avatar = data['avatar']
+        obj_user = User.objects.get(id=id)
+        obj_user.avatar = avatar
+        obj_user.save()
+        return JsonResponse({'code': 200})
+
+
 class TestView(View):
     @staticmethod
     def get(request):
@@ -117,7 +188,8 @@ class TestView(View):
 
 
 class JwtTestView(View):
-    def get(self, request):
+    @staticmethod
+    def get(request):
         user = User.objects.get(username='admin', password='123456')
         jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
         jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER

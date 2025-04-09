@@ -28,7 +28,7 @@ const activeTab = ref("userinfo")
           </template>
           <div>
             <div class="text-center">
-              <avatar/>
+              <avatar :user="current_user"/>
             </div>
             <ul class="list-group list-group-striped">
               <li class="list-group-item">
