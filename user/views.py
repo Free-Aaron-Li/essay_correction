@@ -19,6 +19,7 @@ from user.models import User, UserSerializer
 
 
 class LoginView(View):
+
     @staticmethod
     def get_user_roles(user: User) -> List[Role]:
         """
@@ -29,7 +30,16 @@ class LoginView(View):
         """
         # 查询用户的角色列表
         role_list = Role.objects.raw(
-            "select id, name from roles where id in (select role_id from user_role where user_id=%s);", [user.id]
+            """
+            select id, name 
+            from roles 
+            where id in (
+                select role_id 
+                from user_role 
+                where user_id=%s
+            );
+            """,
+            (user.id,)
         )
         return list(role_list)
 
@@ -49,15 +59,25 @@ class LoginView(View):
         for role in role_list:
             # 针对每个角色查询对应菜单
             menu_list_raw = Menu.objects.raw(
-                "select id, name, icon, parent_id, order_num, perms, create_time, update_time, remark "
-                "from menus where id in (select menu_id from role_menu where role_id=%s);", [role.id]
+                """
+                select id, name, icon, parent_id, order_num, perms, create_time, update_time, remark 
+                from menus 
+                where id in (
+                    select menu_id 
+                    from role_menu 
+                    where role_id=%s
+                );
+                """,
+                (role.id,)
             )
             # 转换 RawQuerySet 为 list 并进行合并
             menu_list = list(menu_list_raw)
-            merged_menu_list.extend(menu_list)
-
+            # 去重并合并
+            for menu in menu_list:
+                if menu not in merged_menu_list:
+                    merged_menu_list.append(menu)
         # 根据 order_num 进行排序
-        sorted_menu_list = sorted(merged_menu_list, key=lambda menu: menu.order_num)
+        sorted_menu_list = sorted(merged_menu_list, key=lambda m: m.order_num)
 
         return sorted_menu_list
 
@@ -233,7 +253,8 @@ class SearchView(View):
         page_num = data['pageNum']  # 当前页
         page_size = data['pageSize']  # 每页大小
         query = data['query']  # 查询参数
-        user_list_page = Paginator(User.objects.filter(username__icontains=query), page_size).page(page_num)  # 模糊查询
+        user_list_page = Paginator(User.objects.filter(username__icontains=query).order_by('id'), page_size).page(
+            page_num)  # 模糊查询
         # 转换为字典格式
         user_list_page = user_list_page.object_list.values()
         # 外层容器转换为 list
@@ -243,7 +264,7 @@ class SearchView(View):
         for user in user_list:
             role_list = Role.objects.raw(
                 "select id, name from roles where id in (select role_id from user_role where user_id=%s);",
-                str(user['id']))
+                (user['id'],))
             role_list_dict = []
             for role in role_list:
                 role_dict = {'id': role.id, 'name': role.name}

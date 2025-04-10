@@ -6,11 +6,14 @@
   <communicate_aaron@outlook.com>.
   -->
 <script setup>
-
 import {defineEmits, defineProps, ref, watch} from "vue";
 import requestUtil, {getServerUrl} from "@/utils/request";
 import {ElMessage} from 'element-plus'
 
+const defaultProps = {
+  children: 'children',
+  label: 'name'
+}
 
 const props = defineProps(
     {
@@ -19,79 +22,63 @@ const props = defineProps(
         default: -1,
         required: true
       },
-      roleDialogVisible: {
+      menuDialogVisible: {
         type: Boolean,
         default: false,
-        required: true
-      },
-      RoleList: {
-        type: Array,
-        default: [],
         required: true
       }
     }
 )
 
 const form = ref({
-  id: -1,
-  roleList: [],
-  checkedRoles: []
+  id: -1
 })
 
+const treeData = ref([]);
 const formRef = ref(null)
+const treeRef = ref(null)
 
 const initFormData = async (id) => {
-  const res = await requestUtil.get("role/list_all");
-  form.value.roleList = res.data.role_list;
+  const res = await requestUtil.get("menu/tree_list");
+  treeData.value = res.data.tree_list;
   form.value.id = id;
+  const res2 = await requestUtil.get("role/menus?id=" + id);
+  treeRef.value.setCheckedKeys(res2.data.menu_id_list)
 }
 
 watch(
-    () => props.roleDialogVisible,
+    () => props.menuDialogVisible,
     () => {
       let id = props.id;
       if (id !== -1) {
-        form.value.checkedRoles = []
-        props.RoleList.forEach(item => {
-          form.value.checkedRoles.push(item.id);
-        })
         initFormData(id)
       }
     }
 )
 
-const emits = defineEmits(['update:modelValue', 'initUserList'])
+const emits = defineEmits(['update:modelValue', 'initRoleList'])
 
 const handleClose = () => {
   emits('update:modelValue', false)
 }
 
-const handleConfirm = () => {
-  formRef.value.validate(async (valid) => {
-    if (valid) {
-      let result = await requestUtil.post("user/grant_role", {
-        "id": form.value.id,
-        "role_ids": form.value.checkedRoles
-      });
-      let data = result.data;
-      if (data.code === 200) {
-        ElMessage.success("角色选择成功！")
-        emits("initUserList")
-        handleClose();
-      } else {
-        ElMessage.error(data.msg);
-      }
-    } else {
-      console.log("用户选择出错！")
-    }
-  })
+const handleConfirm = async () => {
+  let menuIds = treeRef.value.getCheckedKeys();
+  let result = await requestUtil.post("role/grant", {"id": form.value.id, "menu_ids": menuIds});
+  let data = result.data;
+  if (data.code === 200) {
+    ElMessage.success("权限分配成功！")
+    emits("initRoleList")
+    handleClose();
+  } else {
+    ElMessage.error(data.msg);
+  }
 }
 </script>
-
 <template>
   <el-dialog
-      model-value="roleDialogVisible"
-      title="分配角色"
+      model-value="menuDialogVisible"
+      title="分配权限"
       width="30%"
       @close="handleClose"
   >
@@ -100,11 +87,15 @@ const handleConfirm = () => {
         :model="form"
         label-width="100px"
     >
-      <el-checkbox-group v-model="form.checkedRoles">
-        <el-checkbox v-for="role in form.roleList" :id="role.id" :key="role.id" :label="role.id" name="checkedRoles">
-          {{ role.name }}
-        </el-checkbox>
-      </el-checkbox-group>
+      <el-tree
+          ref="treeRef"
+          :check-strictly=true
+          :data="treeData"
+          :default-expand-all=true
+          :props="defaultProps"
+          node-key="id"
+          show-checkbox
+      />
     </el-form>
 
     <template #footer>

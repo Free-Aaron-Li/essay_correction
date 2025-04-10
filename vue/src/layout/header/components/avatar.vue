@@ -17,7 +17,6 @@ const current_user = JSON.parse(sessionStorage.getItem("current_user"))
 const square_url = current_user.avatar === null
     ? getServerUrl() + 'media/user_avatar/default.jpg'
     : getServerUrl() + 'media/user_avatar/' + current_user.avatar
-console.log(square_url)
 
 const logout = () => {
   // 删除 Session

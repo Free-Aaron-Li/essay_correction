@@ -11,7 +11,6 @@ import {defineEmits, defineProps, ref, watch} from "vue";
 import requestUtil, {getServerUrl} from "@/utils/request";
 import {ElMessage} from 'element-plus'
 
-
 const props = defineProps(
     {
       id: {
@@ -19,14 +18,14 @@ const props = defineProps(
         default: -1,
         required: true
       },
-      roleDialogVisible: {
-        type: Boolean,
-        default: false,
+      dialogTitle: {
+        type: String,
+        default: '',
         required: true
       },
-      RoleList: {
-        type: Array,
-        default: [],
+      dialogVisible: {
+        type: Boolean,
+        default: false,
         required: true
       }
     }
@@ -34,33 +33,46 @@ const props = defineProps(
 
 const form = ref({
   id: -1,
-  roleList: [],
-  checkedRoles: []
+  name: "",
+  code: "",
+  remark: ""
+})
+
+const rules = ref({
+  name: [
+    {required: true, message: '请输入角色名称'}
+  ],
+  code: [
+    {required: true, message: '请输入权限字符'}
+  ]
 })
 
 const formRef = ref(null)
 
 const initFormData = async (id) => {
-  const res = await requestUtil.get("role/list_all");
-  form.value.roleList = res.data.role_list;
-  form.value.id = id;
+  const res = await requestUtil.get("role/action?id=" + id);
+  form.value = res.data.role;
 }
 
 watch(
-    () => props.roleDialogVisible,
+    () => props.dialogVisible,
     () => {
       let id = props.id;
       if (id !== -1) {
-        form.value.checkedRoles = []
-        props.RoleList.forEach(item => {
-          form.value.checkedRoles.push(item.id);
-        })
         initFormData(id)
+      } else {
+        form.value = {
+          id: -1,
+          name: "",
+          code: "",
+          remark: ""
+        }
+
       }
     }
 )
 
-const emits = defineEmits(['update:modelValue', 'initUserList'])
+const emits = defineEmits(['update:modelValue', 'initRoleList'])
 
 const handleClose = () => {
   emits('update:modelValue', false)
@@ -69,44 +81,48 @@ const handleClose = () => {
 const handleConfirm = () => {
   formRef.value.validate(async (valid) => {
     if (valid) {
-      let result = await requestUtil.post("user/grant_role", {
-        "id": form.value.id,
-        "role_ids": form.value.checkedRoles
-      });
+      let result = await requestUtil.post("role/save", form.value);
       let data = result.data;
       if (data.code === 200) {
-        ElMessage.success("角色选择成功！")
-        emits("initUserList")
+        ElMessage.success("角色创建成功！")
+        formRef.value.resetFields();
+        emits("initRoleList")
         handleClose();
       } else {
         ElMessage.error(data.msg);
       }
     } else {
-      console.log("用户选择出错！")
+      console.log("角色创建失败")
     }
   })
 }
 </script>
-
 <template>
   <el-dialog
-      model-value="roleDialogVisible"
-      title="分配角色"
+      :title="dialogTitle"
+      model-value="dialogVisible"
       width="30%"
       @close="handleClose"
   >
     <el-form
         ref="formRef"
         :model="form"
+        :rules="rules"
         label-width="100px"
     >
-      <el-checkbox-group v-model="form.checkedRoles">
-        <el-checkbox v-for="role in form.roleList" :id="role.id" :key="role.id" :label="role.id" name="checkedRoles">
-          {{ role.name }}
-        </el-checkbox>
-      </el-checkbox-group>
-    </el-form>
+      <el-form-item label="角色名称" prop="name">
+        <el-input v-model="form.name"/>
+      </el-form-item>
 
+      <el-form-item label="权限字符" prop="code">
+        <el-input v-model="form.code"/>
+      </el-form-item>
+
+      <el-form-item label="备注" prop="remark">
+        <el-input v-model="form.remark" :rows="4" type="textarea"/>
+      </el-form-item>
+
+    </el-form>
     <template #footer>
       <span class="dialog-footer">
         <el-button type="primary" @click="handleConfirm">确认</el-button>

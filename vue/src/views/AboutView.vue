@@ -20,7 +20,7 @@ const handleLogin = async () => {
   let data = result.data
   if (data.code === 200) {
     const token = data.token
-    console.log("登陆成功，token=" + token)
+    console.log("登陆成功")
     window.sessionStorage.setItem("token", token)
   } else {
     console.log("登陆出错！")
@@ -31,8 +31,7 @@ const handleUserList = async () => {
   let result = await requestUtil.get("user/test")
   let data = result.data
   if (data.code === 200) {
-    const userList = data.data;
-    console.log("用户信息列表，userList=" + userList)
+    console.log("获取到用户信息列表")
   } else {
     console.log("登陆出错！")
   }
