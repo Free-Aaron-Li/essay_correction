@@ -5,8 +5,10 @@
 #  <communicate_aaron@outlook.com>.
 from django.urls import path
 
-from menu.views import TreeListView
+from menu.views import TreeListView, SaveView, ActionView
 
 urlpatterns = [
     path('tree_list', TreeListView.as_view(), name='tree_list'),
+    path('save', SaveView.as_view(), name='save'),
+    path('action', ActionView.as_view(), name='action')
 ]
