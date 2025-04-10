@@ -7,13 +7,14 @@ import json
 from datetime import datetime
 from typing import List
 
+from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.views import View
 from rest_framework_jwt.settings import api_settings
 
 from essay_correction import settings
 from menu.models import Menu, MenuSerializer
-from role.models import Role
+from role.models import Role, UserRole
 from user.models import User, UserSerializer
 
 
@@ -111,7 +112,12 @@ class SaveView(View):
         data = json.loads(request.body.decode('utf-8'))
         # 添加
         if data['id'] == -1:
-            pass
+            user = User(username=data['username'], password=data['password'], email=data['email'], phone=data['phone'],
+                        status=data['status'], remark=data['remark'], user_type=data['user_type'])
+            user.created_at = datetime.now().date()
+            user.avatar = 'default.jpg'
+            user.password = '123456'
+            user.save()
         # 修改
         else:
             user = User(id=data['id'], username=data['username'], password=data['password'],
@@ -121,6 +127,32 @@ class SaveView(View):
             user.update_time = datetime.now().date()
             user.save()
         return JsonResponse({'code': 200})
+
+
+class ActionView(View):
+    @staticmethod
+    def get(request):
+        id = request.GET.get('id')
+        user = User.objects.get(id=id)
+        return JsonResponse({'code': 200, 'user': UserSerializer(user).data})
+
+    @staticmethod
+    def delete(request):
+        id_list = json.loads(request.body.decode("utf-8"))
+        UserRole.objects.filter(user_id__in=id_list).delete()
+        User.objects.filter(id__in=id_list).delete()
+        return JsonResponse({'code': 200})
+
+
+class CheckView(View):
+    @staticmethod
+    def post(request):
+        data = json.loads(request.body.decode("utf-8"))
+        username = data['username']
+        if User.objects.filter(username=username).exists():
+            return JsonResponse({'code': 500})
+        else:
+            return JsonResponse({'code': 200})
 
 
 class PwdView(View):
@@ -140,17 +172,38 @@ class PwdView(View):
             return JsonResponse({'code': 500, 'error_info': '原密码错误！'})
 
 
+class ResetPasswordDefault(View):
+    @staticmethod
+    def get(request):
+        id = request.GET.get('id')
+        user = User.objects.get(id=id)
+        user.password = '123456'
+        user.updated_at = datetime.now().date()
+        user.save()
+        return JsonResponse({'code': 200})
+
+
+class StatusView(View):
+    @staticmethod
+    def post(request):
+        data = json.loads(request.body.decode("utf-8"))
+        id = data['id']
+        status = data['status']
+        user = User.objects.get(id=id)
+        user.status = status
+        user.save()
+        return JsonResponse({'code': 200})
+
+
 class ImageView(View):
     @staticmethod
     def post(request):
         file = request.FILES.get('avatar')
-        print("file:", file)
         if file:
             file_name = file.name
             suffix_name = file_name[file_name.rfind("."):]
             new_file_name = datetime.now().strftime('%Y%m%d%H%M%S') + suffix_name
             file_path = str(settings.MEDIA_ROOT) + "/user_avatar/" + new_file_name
-            print("file_path:", file_path)
             try:
                 with open(file_path, 'wb') as f:
                     for chunk in file.chunks():
@@ -170,6 +223,50 @@ class AvatarView(View):
         obj_user = User.objects.get(id=id)
         obj_user.avatar = avatar
         obj_user.save()
+        return JsonResponse({'code': 200})
+
+
+class SearchView(View):
+    @staticmethod
+    def post(request):
+        data = json.loads(request.body.decode("utf-8"))
+        page_num = data['pageNum']  # 当前页
+        page_size = data['pageSize']  # 每页大小
+        query = data['query']  # 查询参数
+        user_list_page = Paginator(User.objects.filter(username__icontains=query), page_size).page(page_num)  # 模糊查询
+        # 转换为字典格式
+        user_list_page = user_list_page.object_list.values()
+        # 外层容器转换为 list
+        user_list = list(user_list_page)
+
+        # 获取用户对应的所有角色
+        for user in user_list:
+            role_list = Role.objects.raw(
+                "select id, name from roles where id in (select role_id from user_role where user_id=%s);",
+                str(user['id']))
+            role_list_dict = []
+            for role in role_list:
+                role_dict = {'id': role.id, 'name': role.name}
+                role_list_dict.append(role_dict)
+            user['role_list'] = role_list_dict
+        total = User.objects.filter(username__icontains=query).count()
+        return JsonResponse({'code': 200, 'user_list': user_list, 'total': total})
+
+
+class GrantRole(View):
+    """
+    用户角色授权
+    """
+
+    @staticmethod
+    def post(request):
+        data = json.loads(request.body.decode("utf-8"))
+        user_id = data['id']
+        role_id_list = data['role_ids']
+        UserRole.objects.filter(user_id=user_id).delete()
+        for role_id in role_id_list:
+            user_role = UserRole(user_id=user_id, role_id=role_id)
+            user_role.save()
         return JsonResponse({'code': 200})
 
 
